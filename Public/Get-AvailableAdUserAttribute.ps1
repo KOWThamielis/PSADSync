@@ -2,7 +2,7 @@
 function Get-AvailableAdUserAttribute {
 	param()
 
-	$schema =[DirectoryServices.ActiveDirectory.ActiveDirectorySchema]::GetCurrentSchema()
+	$schema = [DirectoryServices.ActiveDirectory.ActiveDirectorySchema]::GetCurrentSchema()
 	$userClass = $schema.FindClass('user')
 	
 	foreach ($name in $userClass.GetAllProperties().Name | Sort-Object) {

@@ -1,9 +1,9 @@
 # .ExternalHelp PSADSync-Help.xml
+
 function Invoke-AdSync {
 	[OutputType([void])]
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
-	param
-	(
+	param (
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
 		[string]$CsvFilePath,
@@ -48,14 +48,18 @@ function Invoke-AdSync {
 		[Parameter()]
 		[switch]$LogOverwrite
 	)
+
 	begin {
 		$ErrorActionPreference = 'Stop'
 		$logParams = @{ "FilePath" = $LogFilePath }
+		
 		if ($PSBoundParameters.ContainsKey('LogOverwrite')) {
 			$logParams["Overwrite"] = $true
 		}
 	}
+
 	process {
+
 		try {
 			$getCsvParams = @{
 				CsvFilePath = $CsvFilePath
@@ -65,6 +69,7 @@ function Invoke-AdSync {
 				if (-not (TestCsvHeaderExists -CsvFilePath $CsvFilePath -Header ([array]$Exclude.Keys))) {
 					throw 'One or more CSV headers excluded with -Exclude do not exist in the CSV file.'
 				}
+				
 				$getCsvParams.Exclude = $Exclude
 			}
 
@@ -110,11 +115,13 @@ function Invoke-AdSync {
 						} else {
 							$prgMsg = "Attempting to find and sync AD any attribute mismatches for user in CSV row [$($stepCounter + 1)]"
 						}
+						
 						WriteProgressHelper -Message $prgMsg -StepNumber ($stepCounter++)
+
 						$csvUser = $_
 						if ($adUserMatch = FindUserMatch -CsvUser $csvUser -FieldMatchMap $FieldMatchMap) {
 							$CSVAttemptedMatchIds = $aduserMatch.CSVAttemptedMatchIds
-							$csvIdValue = ($CSVAttemptedMatchIds | % { $csvUser.$_ }) -join ','
+							$csvIdValue = ($CSVAttemptedMatchIds | ForEach-Object { $csvUser.$_ }) -join ','
 							$csvIdField = $CSVAttemptedMatchIds -join ','
 
 							#region FieldValueMap check
@@ -142,6 +149,7 @@ function Invoke-AdSync {
 									if ($PSBoundParameters.ContainsKey('UserTerminationAction')) {
 										$termParams.UserTerminationAction = $UserTerminationAction
 									}
+									
 									InvokeUserTermination @termParams
 								}
 
@@ -158,10 +166,12 @@ function Invoke-AdSync {
 									CsvUser      = $csvUser
 									FieldSyncMap = $FieldSyncMap
 								}
+								
 								$attribMismatches = FindAttributeMismatch @findParams
+								
 								if ($attribMismatches) {
 									$logEntry = $false
-									$attribMismatches | foreach {
+									$attribMismatches | ForEach-Object {
 										$logAttribs = @{
 											CSVAttributeName  = 'AttributeChange - {0}' -f [string]($_.CSVField.Keys)
 											CSVAttributeValue = [string]($_.CSVField.Values)
@@ -208,6 +218,7 @@ function Invoke-AdSync {
 									ADAttributeValue  = 'NoMatch'
 									Message           = $null
 								}
+								
 							} elseif ($PSBoundParameters.ContainsKey('UserMatchMap') -and (TestShouldCreateNewUser -CsvUser $csvUser)) {
 								$csvIdField = $csvIds.Field -join ','
 								if (-not $ReportOnly.IsPresent) {
@@ -232,7 +243,9 @@ function Invoke-AdSync {
 									ADAttributeValue  = 'NewUserCreated'
 									Message           = "UserName: [$($newAdUser.Name)] - Password: [$($newAdUser.Password)]"
 								}
-								$csvIdValue = ($csvIds | foreach { $csvUser.($_.Field) })
+
+								$csvIdValue = ($csvIds | ForEach-Object { $csvUser.($_.Field) })
+
 							} else {
 								$csvIdField = $csvIds.Field -join ','
 								$csvIdValue = "CSV Row: $csvRow"

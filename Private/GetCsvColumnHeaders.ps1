@@ -1,8 +1,7 @@
 function GetCsvColumnHeaders {
 	[OutputType([string])]
 	[CmdletBinding()]
-	param
-	(
+	param (
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
 		[string]$CsvFilePath

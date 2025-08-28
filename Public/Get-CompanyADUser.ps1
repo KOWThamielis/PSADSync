@@ -1,7 +1,6 @@
 function Get-CompanyAdUser {
 	[CmdletBinding()]
-	param
-	(
+	param (
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
 		[hashtable]$FieldMatchMap,
@@ -10,16 +9,19 @@ function Get-CompanyAdUser {
 		[ValidateNotNullOrEmpty()]
 		[hashtable]$FieldSyncMap
 	)
+
 	begin {
 		$ErrorActionPreference = 'Stop'
 	}
+	
 	process {
 		try {
 			$userSyncProperties = [array]($FieldSyncMap.Values)
 			@($FieldMatchMap.GetEnumerator()).foreach({
 					if ($_.Value -is 'scriptblock') {
 						$userSyncProperties += ParseScriptBlockHeaders -FieldScriptBlock $_.Value | Select-Object -Unique
-					} else {
+					}
+					else {
 						$userSyncProperties += $_.Value
 					}
 				})
@@ -31,7 +33,8 @@ function Get-CompanyAdUser {
 					## Ensure at least one ID field is populated
 					@($userIdProperties).where({ $adUser.($_) })
 				})
-		} catch {
+		}
+		catch {
 			Write-Error -Message "Function: $($MyInvocation.MyCommand.Name) Error: $($_.Exception.Message)"
 		}
 	}

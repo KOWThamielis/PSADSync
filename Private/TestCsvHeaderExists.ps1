@@ -1,8 +1,7 @@
 function TestCsvHeaderExists {
 	[OutputType([bool])]
 	[CmdletBinding()]
-	param
-	(
+	param (
 		[Parameter(Mandatory)]
 		[ValidateNotNullOrEmpty()]
 		[string]$CsvFilePath,
